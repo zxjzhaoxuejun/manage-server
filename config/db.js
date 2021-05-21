@@ -11,11 +11,21 @@ mongoose.connect(config.URL,{
 })
 
 const db=mongoose.connection
-
+let maxConnectTimes=0
 db.on('error',()=>{
     log4js.error('***数据库连接失败***')
 })
 
+db.on('disconnected',()=>{
+    log4js.error('***数据库断开连接***')
+    if(maxConnectTimes<3){
+        maxConnectTimes++
+        mongoose.connect(config.URL,{
+            useNewUrlParser:true,
+            useUnifiedTopology:true
+        })
+    }
+})
 db.on('open',()=>{
     log4js.info('***数据库连接成功***')
 })
