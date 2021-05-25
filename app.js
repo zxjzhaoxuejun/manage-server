@@ -9,7 +9,9 @@ const router = require('koa-router')()
 // const logger = require('koa-logger')
 
 const log4js=require('./utils/log4j')
+const utils=require('./utils/utils')
 const users = require('./routes/users')
+const koajwt=require('koa-jwt')//jsonwebtoken中间件
 
 
 
@@ -48,13 +50,32 @@ app.use(async (ctx, next) => {
   }else{
     log4js.info(`[GET] parama:${JSON.stringify(ctx.request.query)}`)
   } 
-  await next()
+  await next().catch(err=>{
+    if(err.status==401){
+      ctx.status=200
+      ctx.body=utils.fail('Token认证失败',utils.CODE.AUTH_ERROR)
+    }else{
+      throw err
+    }
+  })
 })
 
+//
+//秘钥
+const jwtSecret = 'sieia'
+app.use(koajwt({secret:jwtSecret}).unless({
+  // 设置login、register接口，可以不需要认证访问
+  path:[
+    /^\/api\/users\/login/,
+    /^\/api\/users\/register/
+  ]
+}))
 // routes
 router.prefix('/api')
 router.use(users.routes(), users.allowedMethods())
 app.use(router.routes(), router.allowedMethods())
+
+
 
 // error-handling
 app.on('error', (err, ctx) => {
