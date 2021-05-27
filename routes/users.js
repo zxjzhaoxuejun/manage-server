@@ -67,10 +67,8 @@ router.post('/password',async (ctx,next)=>{
   try {
 
     const {authorization}=ctx.request.headers
-    
     const token=authorization.split(' ')[1]
     const tokenState=varifyToken(token)
-    console.log(tokenState)
     if(tokenState){
       await User.findOneAndUpdate({_id:tokenState._id},{$set:ctx.request.body},{new:true}).then(res=>{
         ctx.body=util.success(util.CODE.SUCCESS,'修改成功!')

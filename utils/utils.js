@@ -25,7 +25,7 @@ module.exports={
             skipIndex
         }
     },
-    success(data='',msg='',code=CODE.SUCCESS){
+    success(data=null,msg='',code=CODE.SUCCESS){
         log4js.debug(data)
         return {
             code,
