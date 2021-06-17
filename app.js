@@ -68,7 +68,8 @@ app.use(koajwt({secret:jwtSecret}).unless({
   // 设置login、register接口，可以不需要认证访问
   path:[
     /^\/api\/users\/login/,
-    /^\/api\/users\/register/
+    /^\/api\/users\/register/,
+    /^\/api\/users\/code-captcha/,
   ]
 }))
 // routes

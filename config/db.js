@@ -10,6 +10,7 @@ mongoose.connect(config.URL,{
     useUnifiedTopology:true
 })
 
+mongoose.set('useFindAndModify', false)
 const db=mongoose.connection
 let maxConnectTimes=0
 db.on('error',()=>{

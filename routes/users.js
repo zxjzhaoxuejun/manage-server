@@ -3,6 +3,7 @@
  */
 const router = require('koa-router')()
 const User=require('./../models/userSchema')
+const UserCounter=require('./../models/userCountesSchema')
 const util=require('./../utils/utils')
 const {varifyToken,createToken} = require('./../utils/jwttoken')
 const sha1=require('sha1')
@@ -49,7 +50,8 @@ router.post('/register',async (ctx,next)=>{
       ctx.body=util.fail('验证码输入错误!')
       return false
     }
-    let newUser = new User(ctx.request.body)
+    const doc= await UserCounter.findOneAndUpdate({_id:'userId'},{$inc:{sequence_value:1}},{new:true})
+    let newUser = new User({...ctx.request.body,"userId":doc.sequence_value})
     await newUser.save().then(()=>{
       ctx.body=util.success('','注册成功!')
     }).catch(err=>{
@@ -106,6 +108,64 @@ router.get('/code-captcha',async (ctx,next)=>{
   }
 })
 
+/**
+ * 获取用户列表
+ */
+router.post('/list',async (ctx,next)=>{
+  const {userId,userName,state}=ctx.request.body
+  const {page,skipIndex}=util.pager(ctx.request.body)
+  let params={}
+  if(userName) params.userName=userName
+  if(userId) params.userId=userId
+  if(state&&state!='0')params.state=state
+  //根据条件查询用户列表
+  try {
+    const query=User.find(params,{_id:0,userPwd:0})
+  const list=await query.skip(skipIndex).limit(page.pageSize)
+  const total=await User.countDocuments(params)
+  ctx.body=util.success({
+    total,
+    list
+  })
+  } catch (error) {
+    ctx.body=util.fail(`数据异常：${error}`)
+  }
+})
+
+/**
+ * 添加用户
+ */
+router.post('/operate',async(ctx)=>{
+  const {mobile,job,role,roleList,deptId,userName,state,userEmail}=ctx.request.body
+  if(!userEmail||!userName||!deptId){
+    ctx.body=util.fail('参数错误',util.CODE.PARAM_ERROR)
+    return false
+  }
+  const doc =await UserCounter.findOneAndUpdate({_id:"userId"},{$inc:{sequence_value:1}},{new:true})
+  const res =await User.findOne({$or:[{userEmail},{userName}]},'_id userName userEmail')
+  if(res){
+    ctx.body=util.fail(`有重复的用户，信息如下：${res.userName}-${res.userEmail}`)
+  }else{
+    const user=new User({
+      mobile,
+      job,
+      role,
+      roleList,
+      deptId,
+      userName,
+      state,
+      userEmail,
+      "userId":doc.sequence_value,
+      userPwd:sha1('z123456')
+    })
+
+    await user.save().then(()=>{
+      ctx.body=util.success('','用户新增成功!')
+    })
+
+  }
+}
+)
 
 
 module.exports = router
