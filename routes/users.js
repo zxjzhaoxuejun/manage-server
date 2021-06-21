@@ -136,36 +136,59 @@ router.post('/list',async (ctx,next)=>{
  * 添加用户
  */
 router.post('/operate',async(ctx)=>{
-  const {mobile,job,role,roleList,deptId,userName,state,userEmail}=ctx.request.body
+  const {mobile,job,role,roleList,deptId,userName,state,userEmail,userId,action}=ctx.request.body
   if(!userEmail||!userName||!deptId){
     ctx.body=util.fail('参数错误',util.CODE.PARAM_ERROR)
     return false
   }
-  const doc =await UserCounter.findOneAndUpdate({_id:"userId"},{$inc:{sequence_value:1}},{new:true})
-  const res =await User.findOne({$or:[{userEmail},{userName}]},'_id userName userEmail')
-  if(res){
-    ctx.body=util.fail(`有重复的用户，信息如下：${res.userName}-${res.userEmail}`)
+  if(action==='add'){
+    const doc =await UserCounter.findOneAndUpdate({_id:"userId"},{$inc:{sequence_value:1}},{new:true})
+    const res =await User.findOne({$or:[{userEmail},{userName}]},'_id userName userEmail')
+    if(res){
+      ctx.body=util.fail(`有重复的用户，信息如下：${res.userName}-${res.userEmail}`)
+    }else{
+      const user=new User({
+        mobile,
+        job,
+        role,
+        roleList,
+        deptId,
+        userName,
+        state,
+        userEmail,
+        "userId":doc.sequence_value,
+        userPwd:sha1('z123456')
+      })
+
+      await user.save().then(()=>{
+        ctx.body=util.success('','用户新增成功!')
+      })
+
+    }
   }else{
-    const user=new User({
-      mobile,
-      job,
-      role,
-      roleList,
-      deptId,
-      userName,
-      state,
-      userEmail,
-      "userId":doc.sequence_value,
-      userPwd:sha1('z123456')
-    })
-
-    await user.save().then(()=>{
-      ctx.body=util.success('','用户新增成功!')
-    })
-
+    const res=await User.findOneAndUpdate({userId},{mobile,job,role,roleList,deptId,state})
+    if(res){
+      ctx.body=util.success('','更新成功')
+      return;
+    }
+    ctx.body=util.fail('更新失败')
   }
-}
-)
+})
 
+/**
+ * 用户删除、批量删除
+ */
+router.post('/delete',async (ctx)=>{
+//待删除的用户id数组
+const {userIds}=ctx.request.body
+// User.updateMany({$or:[{userId:100001},{userId:100002}]},{state:2})
+// const res=await User.updateMany({userId:{$in:userIds}},{state:2})
+const res=await User.deleteMany({userId:{$in:userIds}})
+if(res.deletedCount){
+  ctx.body=util.success(res,`共删除成功${res.deletedCount}条`)
+  return;
+}
+ctx.body=util.fail('删除失败')
+})
 
 module.exports = router
