@@ -26,11 +26,12 @@ router.post('/login', async (ctx, next)=>{
     const res= await User.findOne({
       userName,
       'userPwd':sha1(userPwd)
-    },'userName sex state userEmail mobile role _id')//查询指定字段
+    },'userName sex state userEmail mobile role _id roleList userId')//查询指定字段
     if(res){
       const data=res._doc
       const token=createToken(data)
       data.token=token
+      await User.findOneAndUpdate({userId:data.userId},{lastLoginTime:new Date()})
       ctx.body=util.success(data)
     }else{
       ctx.body=util.fail('账号或密码不正确',util.CODE.USER_ACCOUNT_ERROR)

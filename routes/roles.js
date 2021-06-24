@@ -114,7 +114,7 @@ router.post('/delete',async (ctx)=>{
  */
 router.post('/update/permission',async (ctx)=>{
     const {roleId,permissionList} =ctx.request.body
-    const res=await Roles.findOneAndUpdate({roleId},{permissionList})
+    const res=await Roles.findOneAndUpdate({roleId},{permissionList}) 
     if(res){
     ctx.body=util.success('','权限设置成功')
     return;
