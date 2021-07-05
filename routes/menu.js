@@ -5,8 +5,6 @@ const router = require('koa-router')()
 const Menu=require('../models/menuSchema')
 const Role=require('../models/roleSchema')
 const util=require('../utils/utils')
-const {varifyToken} = require('../utils/jwttoken')
-
 
 router.prefix('/menu')
 
@@ -14,11 +12,6 @@ router.prefix('/menu')
  * 新增、编辑菜单
  */
 router.post('/operate',async (ctx,next)=>{
-    try {
-    const {authorization}=ctx.request.headers
-    const token=authorization.split(' ')[1]
-    const tokenState=varifyToken(token)
-    if(tokenState){
       const {_id,action,...params}=ctx.request.body
       let res,msg
       try {
@@ -37,12 +30,6 @@ router.post('/operate',async (ctx,next)=>{
         ctx.body=util.fail(error)
         return
       }
-    }else{
-        ctx.body=util.fail('认证失败或TOKEN过期',util.CODE.AUTH_ERROR)
-    }
-    } catch (error) {
-      ctx.body=util.fail(error.msg)
-    }
 })
 
 /**
@@ -64,10 +51,6 @@ router.post('/delete',async(ctx)=>{
  */
 router.get('/list',async (ctx,next)=>{
     try {
-    const {authorization}=ctx.request.headers
-    const token=authorization.split(' ')[1]
-    const tokenState=varifyToken(token)
-    if(tokenState){
         const {menuName,menuState}=ctx.request.query
         let params={}
         if(menuName)params.menuName=menuName
@@ -75,9 +58,6 @@ router.get('/list',async (ctx,next)=>{
         const rootList= await Menu.find(params)||[]
         const res= getTreeMenu(rootList,undefined,[])
         ctx.body=util.success(res)     
-    }else{
-        ctx.body=util.fail('认证失败或TOKEN过期',util.CODE.AUTH_ERROR)
-    }
     } catch (error) {
       ctx.body=util.fail(error.msg)
     }
@@ -90,17 +70,10 @@ router.get('/list',async (ctx,next)=>{
  */
 router.get('/get/permission/list',async(ctx)=>{
   try {
-    const {authorization}=ctx.request.headers
-    const token=authorization.split(' ')[1]
-    const tokenState=varifyToken(token)
-    if(tokenState){
-        const {role,roleList}=tokenState
-        const menuList= await getPermissionMenuList(role,roleList)
-        const activeList=await getActionMap(menuList)
-        ctx.body=util.success({menuList,activeList})     
-    }else{
-        ctx.body=util.fail('认证失败或TOKEN过期',util.CODE.AUTH_ERROR)
-    }
+      const {role,roleList}=ctx.payload
+      const menuList= await getPermissionMenuList(role,roleList)
+      const activeList=await getActionMap(menuList)
+      ctx.body=util.success({menuList,activeList})     
     } catch (error) {
       ctx.body=util.fail(error.msg)
     }

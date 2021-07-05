@@ -5,8 +5,6 @@ const router = require('koa-router')()
 const Roles=require('./../models/roleSchema')
 const RoleCounter=require('./../models/roleCountSchema')
 const util=require('./../utils/utils')
-const {varifyToken} = require('./../utils/jwttoken')
-
 
 router.prefix('/role')
 
@@ -15,10 +13,6 @@ router.prefix('/role')
  */
 router.post('/operate',async (ctx,next)=>{
     try {
-    const {authorization}=ctx.request.headers
-    const token=authorization.split(' ')[1]
-    const tokenState=varifyToken(token)
-    if(tokenState){
         const {roleName,remark,action,roleId}=ctx.request.body
         if(action==='add'){
             const doc =await RoleCounter.findOneAndUpdate({_id:"roleId"},{$inc:{sequence_value:1}},{new:true})
@@ -42,10 +36,6 @@ router.post('/operate',async (ctx,next)=>{
             }
             ctx.body=util.fail('更新失败')
         }
-        
-    }else{
-        ctx.body=util.fail('认证失败或TOKEN过期',util.CODE.AUTH_ERROR)
-    }
     } catch (error) {
       ctx.body=util.fail(error.msg)
     }
@@ -56,10 +46,6 @@ router.post('/operate',async (ctx,next)=>{
  */
 router.get('/list',async (ctx,next)=>{
     try {
-    const {authorization}=ctx.request.headers
-    const token=authorization.split(' ')[1]
-    const tokenState=varifyToken(token)
-        if(tokenState){
             const {roleName}=ctx.request.query
             const {page,skipIndex}=util.pager(ctx.request.query)
             let params={}
@@ -75,9 +61,6 @@ router.get('/list',async (ctx,next)=>{
         } catch (error) {
             ctx.body=util.fail(`数据异常：${error}`)
         }
-        }else{
-            ctx.body=util.fail('认证失败或TOKEN过期',util.CODE.AUTH_ERROR)
-        }
     } catch (error) {
         ctx.body=util.fail(error.msg)
     }
@@ -88,21 +71,16 @@ router.get('/list',async (ctx,next)=>{
  */
 router.post('/delete',async (ctx)=>{
     try {
-        const {authorization}=ctx.request.headers
-        const token=authorization.split(' ')[1]
-        const tokenState=varifyToken(token)
-        if(tokenState){
-            const {roleIds} =ctx.request.body
-            console.log(roleIds)
-            const res=await Roles.deleteMany({roleId:{$in:roleIds}})
-            if(res.deletedCount){
-                ctx.body=util.success(res,`共删除成功${res.deletedCount}条`)
-                return;
-            }
-            ctx.body=util.fail(`删除失败`)
-        }else{
-            ctx.body=util.fail('认证失败或TOKEN过期',util.CODE.AUTH_ERROR)
-        }
+        
+    const {roleIds} =ctx.request.body
+    console.log(roleIds)
+    const res=await Roles.deleteMany({roleId:{$in:roleIds}})
+    if(res.deletedCount){
+        ctx.body=util.success(res,`共删除成功${res.deletedCount}条`)
+        return;
+    }
+    ctx.body=util.fail(`删除失败`)
+        
     } catch (error) {
         ctx.body=util.fail(error.msg)
     }

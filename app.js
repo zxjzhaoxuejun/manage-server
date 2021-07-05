@@ -15,7 +15,8 @@ const users = require('./routes/users')
 const roles=require('./routes/roles')
 const menus=require('./routes/menu')
 const depts=require('./routes/dept')
-const koajwt=require('koa-jwt')//jsonwebtoken中间件
+// const koajwt=require('koa-jwt')//jsonwebtoken中间件
+const {checkJwt,extractors} = require('./utils/check-jwt')
 
 
 
@@ -67,14 +68,22 @@ app.use(async (ctx, next) => {
 //
 //秘钥
 const jwtSecret = 'sieia'
-app.use(koajwt({secret:jwtSecret}).unless({
-  // 设置login、register接口，可以不需要认证访问
-  path:[
-    /^\/api\/users\/login/,
-    /^\/api\/users\/register/,
-    /^\/api\/users\/code-captcha/,
+app.use(checkJwt({
+  secretOrKey: jwtSecret,
+  safetyRoutes: [
+    '/api/users/login',
+    '/api/users/register',
+    '/api/users/code-captcha',
   ]
 }))
+// app.use(koajwt({secret:jwtSecret}).unless({
+//   // 设置login、register接口，可以不需要认证访问
+//   path:[
+//     /^\/api\/users\/login/,
+//     /^\/api\/users\/register/,
+//     /^\/api\/users\/code-captcha/,
+//   ]
+// }))
 // routes
 router.prefix('/api')
 router.use(users.routes(), users.allowedMethods())

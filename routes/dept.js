@@ -4,8 +4,6 @@
 const router = require('koa-router')()
 const Dept=require('../models/deptSchema')
 const util=require('../utils/utils')
-const {varifyToken} = require('../utils/jwttoken')
-
 
 router.prefix('/dept')
 
@@ -13,11 +11,6 @@ router.prefix('/dept')
  * 新增、编辑
  */
 router.post('/operate',async (ctx,next)=>{
-    try {
-    const {authorization}=ctx.request.headers
-    const token=authorization.split(' ')[1]
-    const tokenState=varifyToken(token)
-    if(tokenState){
       const {_id,action,userObj,...params}=ctx.request.body
       let res,msg
       try {
@@ -35,12 +28,6 @@ router.post('/operate',async (ctx,next)=>{
         ctx.body=util.fail(error)
         return
       }
-    }else{
-        ctx.body=util.fail('认证失败或TOKEN过期',util.CODE.AUTH_ERROR)
-    }
-    } catch (error) {
-      ctx.body=util.fail(error.msg)
-    }
 })
 
 /**
@@ -62,10 +49,8 @@ router.post('/delete',async(ctx)=>{
  */
 router.get('/list',async (ctx,next)=>{
     try {
-    const {authorization}=ctx.request.headers
-    const token=authorization.split(' ')[1]
-    const tokenState=varifyToken(token)
-    if(tokenState){
+    
+    
         const {deptName}=ctx.request.query
         let params={}
         if(deptName)params.deptName=deptName
@@ -73,9 +58,6 @@ router.get('/list',async (ctx,next)=>{
         const rootList= await Dept.find(params)||[]
         const res= getTreeMenu(rootList,undefined,[])
         ctx.body=util.success(res)     
-    }else{
-        ctx.body=util.fail('认证失败或TOKEN过期',util.CODE.AUTH_ERROR)
-    }
     } catch (error) {
       ctx.body=util.fail(error.msg)
     }

@@ -5,7 +5,7 @@ const router = require('koa-router')()
 const User=require('./../models/userSchema')
 const UserCounter=require('./../models/userCountesSchema')
 const util=require('./../utils/utils')
-const {varifyToken,createToken} = require('./../utils/jwttoken')
+const {createToken} = require('./../utils/jwttoken')
 const sha1=require('sha1')
 const svgCaptcha=require('svg-captcha')
 
@@ -68,19 +68,13 @@ router.post('/register',async (ctx,next)=>{
  */
 router.post('/password',async (ctx,next)=>{
   try {
-
-    const {authorization}=ctx.request.headers
-    const token=authorization.split(' ')[1]
-    const tokenState=varifyToken(token)
-    if(tokenState){
-      await User.findOneAndUpdate({_id:tokenState._id},{$set:ctx.request.body},{new:true}).then(res=>{
+    
+      const {_id}=ctx.payload
+      await User.findOneAndUpdate({_id},{$set:ctx.request.body},{new:true}).then(res=>{
         ctx.body=util.success(util.CODE.SUCCESS,'修改成功!')
       }).catch(err=>{
         ctx.body=util.fail(err.msg)
       })
-    }else{
-      ctx.body=util.fail('认证失败或TOKEN过期',util.CODE.AUTH_ERROR)
-    }
   } catch (error) {
     ctx.body=util.fail(error.msg)
   }
