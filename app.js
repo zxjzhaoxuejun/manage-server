@@ -15,6 +15,7 @@ const users = require('./routes/users')
 const roles=require('./routes/roles')
 const menus=require('./routes/menu')
 const depts=require('./routes/dept')
+const leave=require('./routes/audit')
 // const koajwt=require('koa-jwt')//jsonwebtoken中间件
 const {checkJwt,extractors} = require('./utils/check-jwt')
 
@@ -91,6 +92,7 @@ router.use(users.routes(), users.allowedMethods())
 router.use(roles.routes(),roles.allowedMethods())
 router.use(menus.routes(),menus.allowedMethods())
 router.use(depts.routes(),depts.allowedMethods())
+router.use(leave.routes(),leave.allowedMethods())
 app.use(router.routes(), router.allowedMethods())
 
 
