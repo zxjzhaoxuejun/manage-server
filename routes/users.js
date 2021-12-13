@@ -16,13 +16,17 @@ router.prefix('/users')
  */
 router.post('/login', async (ctx, next)=>{
   try {
-    const {userName,userPwd}=ctx.request.body
+    const {userName,userPwd,code}=ctx.request.body
     /**
      * 返回数据库指定字段，三种方式
      * 1.'userName sex state userEmail mobile role _id'
      * 2. {userName:1,_id:1},1返回，0不返回
      * 3.select('userName')
      */
+     if(code.toLocaleLowerCase() !== ctx.session.code.toLocaleLowerCase()){
+      ctx.body=util.fail('验证码输入错误!')
+      return false
+    }
     const res= await User.findOne({
       userName,
       'userPwd':sha1(userPwd)
@@ -46,7 +50,6 @@ router.post('/login', async (ctx, next)=>{
  */
 router.post('/register',async (ctx,next)=>{
   try {
-
     if(ctx.request.body.code.toLocaleLowerCase() !== ctx.session.code.toLocaleLowerCase()){
       ctx.body=util.fail('验证码输入错误!')
       return false
@@ -67,9 +70,17 @@ router.post('/register',async (ctx,next)=>{
  * 修改密码
  */
 router.post('/password',async (ctx,next)=>{
+  if(ctx.request.body.code.toLocaleLowerCase() !== ctx.session.code.toLocaleLowerCase()){
+    ctx.body=util.fail('验证码输入错误!')
+    return false
+  }
   try {
-    
       const {_id}=ctx.payload
+      const res= await User.findOne({_id,userPwd:ctx.request.body.oldPwd})
+      if(!res){
+        ctx.body=util.fail('原始密码输入错误!')
+        return false
+      }
       await User.findOneAndUpdate({_id},{$set:ctx.request.body},{new:true}).then(res=>{
         ctx.body=util.success(util.CODE.SUCCESS,'修改成功!')
       }).catch(err=>{
@@ -86,6 +97,7 @@ router.post('/password',async (ctx,next)=>{
  */
 //https://www.npmjs.com/package/svg-captcha
 router.get('/code-captcha',async (ctx,next)=>{
+  console.log(ctx)
   try {
     const captcha=await svgCaptcha.create({
       size:4, //随机字符串的大小
@@ -93,7 +105,8 @@ router.get('/code-captcha',async (ctx,next)=>{
       noise:1, //噪声线的数量
       color:true, //字符将具有不同的颜色而不是灰色，如果设置了背景选项，则为true
       // background:'＃ff6600',// SVG图片的背景颜色
-      height:38
+      height:34,
+      width:100
     })
     ctx.session.code=captcha.text
     ctx.response.type='image/svg+xml'

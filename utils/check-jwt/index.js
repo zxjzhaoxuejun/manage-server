@@ -22,6 +22,7 @@ function checkJwt({jwtFromRequest,safetyRoutes,secretOrKey}={}){
         if(typeof safetyRoutes !== 'undefined'){
             let url = ctx.request.url
             //对安全的路由 不验证token
+            console.log(safetyRoutes)
             if(Array.isArray(safetyRoutes)){
                 for (let i = 0, len = safetyRoutes.length; i < len; i++) {
                     let route = safetyRoutes[i],

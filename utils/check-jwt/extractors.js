@@ -10,7 +10,7 @@ extractors.fromHeader = function(header_name='authorization'){
             request.header[header_name];
             console.log('token=>'+token)
         }else{
-            ctx.body =util.fail(`${header_name} 不合法`,util.CODE.AUTH_ERROR)
+            ctx.body =util.fail(`认证失败或TOKEN过期`,util.CODE.AUTH_ERROR)
         }
         return token;
     }
@@ -36,7 +36,7 @@ extractors.fromBodyField = function(field_name){
         if (request.body[field_name] && Object.prototype.hasOwnProperty.call(request.body, field_name)) {
             token = request.body[field_name];
         }else{
-            ctx.body =util.fail(`${field_name} 不合法`,util.CODE.AUTH_ERROR)
+            ctx.body =util.fail(`认证失败或TOKEN过期`,util.CODE.AUTH_ERROR)
         }
         return token;
     }

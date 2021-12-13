@@ -71,7 +71,6 @@ router.get('/list',async (ctx,next)=>{
  */
 router.post('/delete',async (ctx)=>{
     try {
-        
     const {roleIds} =ctx.request.body
     console.log(roleIds)
     const res=await Roles.deleteMany({roleId:{$in:roleIds}})
