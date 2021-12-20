@@ -6,8 +6,9 @@ const Comment = require('./../models/commentSchema')
 const Article = require('./../models/articleSchema')
 const Likes = require('./../models/likesSchema')
 const util = require('./../utils/utils')
-const mongoose = require("mongoose")
-const likesSchema = require('./../models/likesSchema')
+const replys=require('./../models/replySchema')
+// const mongoose = require("mongoose")
+// const likesSchema = require('./../models/likesSchema')
 
 router.prefix('/comment')
 
@@ -37,7 +38,11 @@ router.post('/list', async (ctx, next) => {
                path:'likeStatus',
                match:{userId:{$eq:userId}},//条件
                select:{'isLike':1,'_id':0}//去掉_id属性，选择isLike
-           }).sort({'createTime':-1})
+           }).populate({
+            path:'replyList',
+            // match:{userId:{$eq:userId}},//条件
+            // select:{'isLike':1,'_id':0}//去掉_id属性，选择isLike
+        }).sort({'createTime':-1})
            ctx.body=util.success({
                 list
             })
@@ -106,6 +111,24 @@ router.post('/like', async (ctx, next) => {
                 ctx.body = util.fail(err.msg)
             })
         }
+    } catch (error) {
+        ctx.body = util.fail(error)
+    }
+})
+
+/**
+ * 保存评论的回复
+ */
+router.post('/reply',async (ctx)=>{
+    try {
+       const params=ctx.request.body
+       const newReplys=new replys(params)
+       const res=await newReplys.save() 
+       if(res){
+        ctx.body = util.success('', '评论回复成功!')
+       }else{
+        ctx.body = util.fail('评论回复失败!')
+       }
     } catch (error) {
         ctx.body = util.fail(error)
     }

@@ -26,12 +26,20 @@ const commentSchema=new Schema({
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   })
-//给commentSchema设置一个虚拟关联字段：likeStatus;
+//给commentSchema设置一个虚拟关联评论点赞字段：likeStatus;
 commentSchema.virtual('likeStatus', {
-    ref: 'likes', // 虚拟字段的model为Person
-    localField: '_id', // 查找到Person.band的值和Band.name的值相等的项
+    ref: 'likes', // 虚拟字段的model为likes
+    localField: '_id', // 查找到comment._id的值和likes.replyId的值相等的项
     foreignField: 'commentId', //
     // justOne用于指定，返回的likeStatus是单个数据还是一个数组集合，justOne默认为false
     justOne: true
+  });
+//给commentSchema设置一个虚拟关联评论回复字段：replyList;
+commentSchema.virtual('replyList', {
+    ref: 'replys', // 虚拟字段的model为replys
+    localField: '_id', // 查找到comment._id的值和replys.replyId的值相等的项
+    foreignField: 'replyId', //
+    // justOne用于指定，返回的replyList是单个数据还是一个数组集合，justOne默认为false
+    justOne: false
   });
 module.exports=mongoose.model('comments',commentSchema,'comments')
