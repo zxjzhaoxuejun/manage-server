@@ -4,10 +4,9 @@ const multer=require('./../utils/multer')
 const util=require('./../utils/utils')
 const Uploads=require('./../models/uploadSchema')
 
-
-  router.prefix('/upload')
+router.prefix('/upload')
   
-  router.post('/uploadImg', multer.single('file'), async (ctx, next) => {
+router.post('/uploadImg', multer.single('file'), async (ctx, next) => {
     // {
     //     fieldname: 'file',
     //     originalname: '6.jpg',
@@ -19,7 +18,8 @@ const Uploads=require('./../models/uploadSchema')
     //     size: 19199
     //   }
       const {filename,mimetype,size,destination}=ctx.req.file
-      const url=`http://localhost:3000/${destination}/${filename}`
+      const cutFile=destination.replace('public/','')
+      const url=`http://localhost:3000/${cutFile}/${filename}`
       const uploadParams={
           name:filename,
           type:mimetype,
@@ -39,6 +39,30 @@ const Uploads=require('./../models/uploadSchema')
         ctx.body=util.fail(err.msg)
       }
     
+})
+
+router.post('/article-img', multer.single('file'), async (ctx, next) => {
+    const {filename,mimetype,size,destination}=ctx.req.file
+      const cutFile=destination.replace('public/','')
+      const url=`http://localhost:3000/${cutFile}/${filename}`
+      const uploadParams={
+          name:filename,
+          type:mimetype,
+          url,
+          size
+      }
+      try {
+        let newUpload = new Uploads(uploadParams)
+        await newUpload.save().then(()=>{
+          ctx.body=util.success({
+              filename: url//返回文件名
+          },'添加成功!')
+        }).catch(err=>{
+          ctx.body=util.fail(err.msg)
+        })
+      } catch (err) {
+        ctx.body=util.fail(err.msg)
+      }
 })
     
 

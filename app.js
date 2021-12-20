@@ -18,6 +18,7 @@ const depts=require('./routes/dept')
 const upload=require('./routes/upload')
 const leave=require('./routes/audit')
 const article=require('./routes/article')
+const comments=require('./routes/comments')
 // const koajwt=require('koa-jwt')//jsonwebtoken中间件
 const {checkJwt,extractors} = require('./utils/check-jwt')
 
@@ -76,6 +77,7 @@ app.use(checkJwt({
     '/api/users/login',
     '/api/users/register',
     '/api/users/code-captcha',
+    // '/public/upload'
   ]
 }))
 // app.use(koajwt({secret:jwtSecret}).unless({
@@ -96,6 +98,7 @@ router.use(depts.routes(),depts.allowedMethods())
 router.use(leave.routes(),leave.allowedMethods())
 router.use(upload.routes(),upload.allowedMethods())
 router.use(article.routes(),article.allowedMethods())
+router.use(comments.routes(),comments.allowedMethods())
 app.use(router.routes(), router.allowedMethods())
 
 
