@@ -5,6 +5,8 @@ const commentSchema=new Schema({
     "userId":String,
     "userName":String,
     "articleId":String,//文章id
+    "level":{type:Number,default:0},
+    // "parentId":{type:String,default:''},
     "replyNum":{
         type:Number,
         default:0

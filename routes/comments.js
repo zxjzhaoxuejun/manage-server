@@ -37,11 +37,37 @@ router.post('/list', async (ctx, next) => {
            const list= await Comment.find({articleId}).populate({
                path:'likeStatus',
                match:{userId:{$eq:userId}},//条件
-               select:{'isLike':1,'_id':0}//去掉_id属性，选择isLike
+               select:{'isLike':1,'_id':0},//去掉_id属性，选择isLike
+               model:'likes'
            }).populate({
             path:'replyList',
-            // match:{userId:{$eq:userId}},//条件
-            // select:{'isLike':1,'_id':0}//去掉_id属性，选择isLike
+            model:'replys',
+            populate:{
+               path:'likeStatus',
+               match:{userId:{$eq:userId}},//条件
+               select:{'isLike':1,'_id':0},//去掉_id属性，选择isLike
+               model:'likes'
+            },
+            // populate:{
+            //     path:'replyList',
+            //     model:'replys',
+            //     populate:{
+            //         path:'likeStatus',
+            //         match:{userId:{$eq:userId}},//条件
+            //         select:{'isLike':1,'_id':0},//去掉_id属性，选择isLike
+            //         model:'likes'
+            //     },
+            //     populate:{
+            //         path:'replyList',
+            //         model:'replys',
+            //         populate:{
+            //             path:'likeStatus',
+            //             match:{userId:{$eq:userId}},//条件
+            //             select:{'isLike':1,'_id':0},//去掉_id属性，选择isLike
+            //             model:'likes'
+            //         }
+            //     }
+            // }
         }).sort({'createTime':-1})
            ctx.body=util.success({
                 list
@@ -91,10 +117,13 @@ router.post('/like', async (ctx, next) => {
     try {
         const params = ctx.request.body
         const res = await Likes.findOneAndUpdate({ commentId: params.commentId,userId:params.userId }, { $set: { isLike: params.isLike } }, { new: true })
+        // const res = await Likes.findOneAndUpdate({ commentId: params.commentId,userId:params.userId }, { $set: { isLike: params.isLike } }, { new: true })
         if (res) {
             if (params.isLike) {
                 await Comment.findOneAndUpdate({ _id: params.commentId }, { $inc: { like: 1 } }, { new: true })
+                await replys.findOneAndUpdate({ _id: params.commentId }, { $inc: { like: 1 } }, { new: true })
             } else {
+                await replys.findOneAndUpdate({ _id: params.commentId }, { $inc: { like: -1 } }, { new: true })
                 await Comment.findOneAndUpdate({ _id: params.commentId }, { $inc: { like: -1 } }, { new: true })
             }
             ctx.body = util.success('', '')
@@ -102,8 +131,10 @@ router.post('/like', async (ctx, next) => {
             const newLikes = new Likes(params)
             await newLikes.save().then(async () => {
                 if (params.isLike) {
+                    await replys.findOneAndUpdate({ _id: params.commentId }, { $inc: { like: 1 } }, { new: true })
                     await Comment.findOneAndUpdate({ _id: params.commentId }, { $inc: { like: 1 } }, { new: true })
                 } else {
+                    await replys.findOneAndUpdate({ _id: params.commentId }, { $inc: { like: -1 } }, { new: true })
                     await Comment.findOneAndUpdate({ _id: params.commentId }, { $inc: { like: -1 } }, { new: true })
                 }
                 ctx.body = util.success('', '')
