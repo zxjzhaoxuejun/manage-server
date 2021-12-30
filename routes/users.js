@@ -50,19 +50,25 @@ router.post('/login', async (ctx, next)=>{
  */
 router.post('/register',async (ctx,next)=>{
   try {
-    if(ctx.request.body.code.toLocaleLowerCase() !== ctx.session.code.toLocaleLowerCase()){
+    const {code,userEmail,password}=ctx.request.body.code
+    if(code.toLowerCase() !== ctx.session.code.toLowerCase()){
       ctx.body=util.fail('验证码输入错误!')
       return false
     }
+    const haveUser=await User.findOne({userEmail})
+    if(haveUser){
+      ctx.body=util.fail('用户已存在!')
+      return false
+    }
     const doc= await UserCounter.findOneAndUpdate({_id:'userId'},{$inc:{sequence_value:1}},{new:true})
-    let newUser = new User({...ctx.request.body,"userId":doc.sequence_value})
+    let newUser = new User({userEmail,password:sha1(password),"userId":doc.sequence_value})
     await newUser.save().then(()=>{
       ctx.body=util.success('','注册成功!')
     }).catch(err=>{
-      ctx.body=util.fail(err.msg)
+      ctx.body=util.fail(err)
     })
   } catch (error) {
-    ctx.body=util.fail(error.msg)
+    ctx.body=util.fail(error)
   }
 })
 

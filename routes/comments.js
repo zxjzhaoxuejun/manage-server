@@ -28,13 +28,30 @@ router.post('/save', async (ctx, next) => {
 })
 
 /**
- * 获取评论列表
+ * 非登录状态获取评论列表
+ */
+router.post('/everybody/list',async (ctx)=>{
+    try {
+        const { articleId } = ctx.request.body
+        const list= await Comment.find({articleId}).populate().populate({
+            path:'replyList',
+            model:'replys',
+        }).sort({'createTime':-1})
+        ctx.body=util.success({
+            list
+        })
+    } catch (error) {
+        ctx.body = util.fail(error)
+    }
+})
+/**
+ * 登录状态获取评论列表
  */
 router.post('/list', async (ctx, next) => {
     try {
-        const {userId}=ctx.payload
         const { articleId } = ctx.request.body
-           const list= await Comment.find({articleId}).populate({
+        const {userId}=ctx.payload
+        const list= await Comment.find({articleId}).populate({
                path:'likeStatus',
                match:{userId:{$eq:userId}},//条件
                select:{'isLike':1,'_id':0},//去掉_id属性，选择isLike

@@ -77,6 +77,9 @@ app.use(checkJwt({
     '/api/users/login',
     '/api/users/register',
     '/api/users/code-captcha',
+    '/api/article/list',
+    '/api/article/details',
+    '/api/comment/everybody/list'
     // '/public/upload'
   ]
 }))

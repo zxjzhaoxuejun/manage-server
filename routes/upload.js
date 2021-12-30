@@ -19,7 +19,7 @@ router.post('/uploadImg', multer.single('file'), async (ctx, next) => {
     //   }
       const {filename,mimetype,size,destination}=ctx.req.file
       const cutFile=destination.replace('public/','')
-      const url=`http://localhost:3000/${cutFile}/${filename}`
+      const url=`http://localhost:9000/${cutFile}/${filename}`
       const uploadParams={
           name:filename,
           type:mimetype,
@@ -44,7 +44,7 @@ router.post('/uploadImg', multer.single('file'), async (ctx, next) => {
 router.post('/article-img', multer.single('file'), async (ctx, next) => {
     const {filename,mimetype,size,destination}=ctx.req.file
       const cutFile=destination.replace('public/','')
-      const url=`http://localhost:3000/${cutFile}/${filename}`
+      const url=`http://localhost:9000/${cutFile}/${filename}`
       const uploadParams={
           name:filename,
           type:mimetype,
